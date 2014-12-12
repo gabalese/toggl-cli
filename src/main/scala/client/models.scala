@@ -1,24 +1,20 @@
 package client
 
-import org.scala_tools.time.Imports._
-
-import scala.util.parsing.json.JSON
-
+import net.liftweb.json
 
 case class User(fullname: String, email: String, created_at: String)
-
-case class Task(name: String, start_time: DateTime)
+case class Task(name: String, start_time: String)
 
 object UserParser {
+  implicit val formats = net.liftweb.json.DefaultFormats
+
   def parse(body: String): User = {
-    val json: Option[Any] = JSON.parseFull(body)
-    val map: Map[String, Any] = json.get.asInstanceOf[Map[String, Any]]
-    val data: Map[String, Any] = map.get("data").get.asInstanceOf[Map[String, String]]
+    val userData: json.JValue = json.parse(body) \ "data"
 
     User(
-      data.get("fullname").get.asInstanceOf[String],
-      data.get("email").get.asInstanceOf[String],
-      data.get("created_at").get.asInstanceOf[String]
+      (userData \ "fullname").extract[String],
+      (userData \ "email").extract[String],
+      (userData \ "created_at").extract[String]
     )
 
   }

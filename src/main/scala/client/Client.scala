@@ -8,7 +8,7 @@ object Client {
     args match {
       case Array("me", _*) =>
         val user = client.getUser
-        println(s"Fullname: ${user.fullname}, Email: ${user.email}")
+        println(s"Fullname: ${user.fullname}, Email: ${user.email}, Joined at: ${user.created_at}")
 
       case Array("list", _*) =>
         println("List:")

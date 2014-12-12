@@ -6,8 +6,8 @@ scalaVersion := "2.11.4"
 
 libraryDependencies ++= Seq(
   "net.databinder.dispatch" %% "dispatch-core" % "0.11.2",
-  "org.scalaj" % "scalaj-time_2.10.2" % "0.7",
-  "io.argonaut" %% "argonaut" % "6.0.4"
+  "net.liftweb" % "lift-json_2.11" % "2.6-RC1",
+  "joda-time" % "joda-time" % "2.0"
 )
 
 
