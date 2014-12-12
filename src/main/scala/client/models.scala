@@ -1,8 +1,11 @@
 package client
 
 import net.liftweb.json
+import java.text.{ParsePosition, FieldPosition, DateFormat}
 
-case class User(fullname: String, email: String, created_at: String)
+import org.joda.time.DateTime
+
+case class User(fullname: String, email: String, created_at: DateTime)
 case class Task(name: String, start_time: String)
 
 object UserParser {
@@ -14,7 +17,7 @@ object UserParser {
     User(
       (userData \ "fullname").extract[String],
       (userData \ "email").extract[String],
-      (userData \ "created_at").extract[String]
+      DateTime.parse((userData \ "created_at").extract[String])
     )
 
   }

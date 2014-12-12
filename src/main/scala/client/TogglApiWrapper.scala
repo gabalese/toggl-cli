@@ -19,4 +19,17 @@ class TogglApiWrapper(implicit val configuration: ClientConfiguration) {
       case StatusCode(403) => throw new InvalidCredentialsException("Invalid Toggl credentials")
     }
   }
+
+  def getCurrentTask: Option[Task] = {
+    ???
+  }
+
+  def getTasks: List[Task] = {
+    ???
+  }
+
+  def getLastTask: Option[Task] = {
+    ???
+  }
+
 }
