@@ -1,14 +1,32 @@
 package client
 
 import net.liftweb.json
-import java.text.{ParsePosition, FieldPosition, DateFormat}
+import org.joda.time._
 
-import org.joda.time.DateTime
+trait Duration {
+  def getDuration: Int
+}
 
-case class User(fullname: String, email: String, created_at: DateTime)
-case class Task(name: String, start_time: String)
+case class User(fullname: String,
+                email: String,
+                created_at: DateTime)
 
-object UserParser {
+case class TimeEntry(id: Int,
+                     pid: Option[Int],
+                     wid: Option[Int],
+                     billable: Option[Boolean],
+                     start: DateTime, stop: Option[DateTime],
+                     created_with: Option[String],
+                     tags: Option[List[Any]]) extends Duration {
+
+  def getDuration: Int = stop match {
+      case Some(datetime) => (datetime.getMillis - start.getMillis).toInt
+      case _ => 0
+    }
+}
+
+
+object User {
   implicit val formats = net.liftweb.json.DefaultFormats
 
   def parse(body: String): User = {
@@ -20,5 +38,30 @@ object UserParser {
       DateTime.parse((userData \ "created_at").extract[String])
     )
 
+  }
+}
+
+object TimeEntry {
+  implicit val formats = net.liftweb.json.DefaultFormats
+
+  def parse(body: String): Option[TimeEntry] = {
+
+    val timeEntryData: json.JValue = json.parse(body) \ "data"
+
+    timeEntryData.children.length match {
+      case 0 => None
+      case _ => Some(
+          TimeEntry(
+          (timeEntryData \ "id").extract[Int],
+          (timeEntryData \ "pid").extract[Option[Int]],
+          (timeEntryData \ "wid").extract[Option[Int]],
+          (timeEntryData \ "billable").extract[Option[Boolean]],
+          DateTime.parse((timeEntryData \ "start").extract[String]),
+          (timeEntryData \ "stop").extract[Option[DateTime]],
+          (timeEntryData \ "created_with").extractOpt[String],
+          (timeEntryData \ "tags").extract[Option[List[Any]]]
+        )
+      )
+    }
   }
 }

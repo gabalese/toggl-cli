@@ -1,35 +1,45 @@
 package client
 
 import dispatch._
-
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class InvalidCredentialsException(msg: String) extends Exception(msg: String)
+class UnableToConnectException(msg: String) extends Exception(msg: String)
 
 class TogglApiWrapper(implicit val configuration: ClientConfiguration) {
+
   val apiKey: String = configuration.apiKey
 
-  def getUser: User = {
-    val svc = url(Endpoints.userData) as_! (apiKey, "api_token")
-    try {
+  object Users {
+    def getCurrentUserDetails: User = {
+      val svc = url(Endpoints.userData) as_!(apiKey, "api_token")
+      try {
         val response: Future[String] = Http(svc OK as.String)
-        val user: User = UserParser.parse(response())
+        val user: User = User.parse(response())
         user
-    } catch {
-      case StatusCode(403) => throw new InvalidCredentialsException("Invalid Toggl credentials")
+      } catch {
+        case StatusCode(403) => throw new InvalidCredentialsException("Invalid Toggl credentials")
+        case ex: java.util.concurrent.ExecutionException => throw new UnableToConnectException("Check connection")
+      }
     }
   }
 
-  def getCurrentTask: Option[Task] = {
-    ???
+  object TimeEntries {
+    def getLast: Option[TimeEntry] = {
+      val svc = url(Endpoints.currentTimeEntry) as_!(apiKey, "api_token")
+      val response: Future[String] = Http(svc OK as.String)
+      val timeEntry = TimeEntry.parse(response())
+      timeEntry
+    }
   }
 
-  def getTasks: List[Task] = {
-    ???
-  }
+    def createEntry: TimeEntry = {
+      ???
+    }
 
-  def getLastTask: Option[Task] = {
-    ???
-  }
+    def get(id: String): TimeEntry = {
+      ???
+    }
+
 
 }
