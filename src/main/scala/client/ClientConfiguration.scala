@@ -15,4 +15,5 @@ class ClientConfiguration {
 object Endpoints {
   val userData: String = "https://www.toggl.com/api/v8/me"
   val currentTimeEntry: String = "https://www.toggl.com/api/v8/time_entries/current"
+  val timeEntries: String = "https://www.toggl.com/api/v8/time_entries"
 }

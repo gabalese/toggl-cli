@@ -15,10 +15,17 @@ object Client {
           println("List:")
 
         case Array("get", "current", _*) =>
-          val timeEntry = client.TimeEntries.getLast
+          val timeEntry = client.TimeEntries.getCurrent
           timeEntry match {
             case Some(entry) => println(timeEntry)
             case None => println("No current entry")
+          }
+
+        case Array("get", "last", _*) =>
+          val timeEntry = client.TimeEntries.getLast
+          timeEntry match {
+            case Some(entry) => println(entry)
+            case None => println("No last entry")
           }
 
         case _ => throw new InvalidCommandException(s"Invalid command: ${args(0)}")

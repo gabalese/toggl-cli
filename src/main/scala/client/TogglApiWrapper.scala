@@ -1,6 +1,7 @@
 package client
 
 import dispatch._
+
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class InvalidCredentialsException(msg: String) extends Exception(msg: String)
@@ -25,11 +26,21 @@ class TogglApiWrapper(implicit val configuration: ClientConfiguration) {
   }
 
   object TimeEntries {
-    def getLast: Option[TimeEntry] = {
+    def getCurrent: Option[TimeEntry] = {
       val svc = url(Endpoints.currentTimeEntry) as_!(apiKey, "api_token")
       val response: Future[String] = Http(svc OK as.String)
       val timeEntry = TimeEntry.parse(response())
       timeEntry
+    }
+
+    def getLast: Option[TimeEntry] = {
+      val svc = url(Endpoints.timeEntries) as_!(apiKey, "api_token")
+      val response: Future[String] = Http(svc OK as.String)
+      val timeEntries = TimeEntry.parseMultiple(response())
+      timeEntries match {
+        case Some(x) => Some(x.reverse.head)
+        case None => None
+      }
     }
   }
 

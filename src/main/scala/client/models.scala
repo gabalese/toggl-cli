@@ -50,18 +50,33 @@ object TimeEntry {
 
     timeEntryData.children.length match {
       case 0 => None
-      case _ => Some(
-          TimeEntry(
-          (timeEntryData \ "id").extract[Int],
-          (timeEntryData \ "pid").extract[Option[Int]],
-          (timeEntryData \ "wid").extract[Option[Int]],
-          (timeEntryData \ "billable").extract[Option[Boolean]],
-          DateTime.parse((timeEntryData \ "start").extract[String]),
-          (timeEntryData \ "stop").extract[Option[DateTime]],
-          (timeEntryData \ "created_with").extractOpt[String],
-          (timeEntryData \ "tags").extract[Option[List[Any]]]
-        )
-      )
+      case _ => Some(parse(timeEntryData))
     }
+  }
+
+  private def parse(timeEntryData: json.JValue): TimeEntry = {
+
+    TimeEntry(
+      (timeEntryData \ "id").extract[Int],
+      (timeEntryData \ "pid").extract[Option[Int]],
+      (timeEntryData \ "wid").extract[Option[Int]],
+      (timeEntryData \ "billable").extract[Option[Boolean]],
+      DateTime.parse((timeEntryData \ "start").extract[String]),
+      (timeEntryData \ "stop").extract[Option[String]] match {
+        case Some(date) => Some(DateTime.parse(date))
+        case None => None
+      },
+      (timeEntryData \ "created_with").extractOpt[String],
+      (timeEntryData \ "tags").extract[Option[List[Any]]]
+    )
+  }
+
+  def parseMultiple(body: String): Option[List[TimeEntry]] = {
+    val timeEntriesData: json.JValue = json.parse(body)
+    if(timeEntriesData.children.toList.length == 0)
+      return None
+
+    val timeEntries = for(entry <- timeEntriesData.children.toList) yield parse(entry)
+    Some(timeEntries.toList)
   }
 }
