@@ -17,7 +17,7 @@ object Client {
         case Array("get", "current", _*) =>
           val timeEntry = client.TimeEntries.getCurrent
           timeEntry match {
-            case Some(entry) => println(timeEntry)
+            case Some(entry) => println(entry)
             case None => println("No current entry")
           }
 
@@ -28,9 +28,17 @@ object Client {
             case None => println("No last entry")
           }
 
+        case Array("stop", "current", _*) =>
+          val timeEntry = client.TimeEntries.stopCurrent
+          timeEntry match {
+            case Some(entry) => println(s"Stopped entry $entry")
+            case None => println("No entry to stop")
+          }
+
         case _ => throw new InvalidCommandException(s"Invalid command: ${args(0)}")
       }
     } catch {
+      case ex: IndexOutOfBoundsException => println("Insert command")
       case ex: Exception => throw ex
     }
 

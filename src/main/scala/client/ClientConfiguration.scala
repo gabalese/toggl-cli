@@ -16,4 +16,7 @@ object Endpoints {
   val userData: String = "https://www.toggl.com/api/v8/me"
   val currentTimeEntry: String = "https://www.toggl.com/api/v8/time_entries/current"
   val timeEntries: String = "https://www.toggl.com/api/v8/time_entries"
+  def stopEntry(id: Int): String = {
+    s"https://www.toggl.com/api/v8/time_entries/$id/stop"
+  }
 }

@@ -2,6 +2,7 @@ package client
 
 import net.liftweb.json
 import org.joda.time._
+import org.joda.time.format.PeriodFormatterBuilder
 
 trait Duration {
   def getDuration: Int
@@ -17,12 +18,40 @@ case class TimeEntry(id: Int,
                      billable: Option[Boolean],
                      start: DateTime, stop: Option[DateTime],
                      created_with: Option[String],
-                     tags: Option[List[Any]]) extends Duration {
+                     tags: Option[List[Any]],
+                     description: String) extends Duration {
+
+  object DurationFormatter {
+    val formatter = new PeriodFormatterBuilder()
+      .appendHours()
+      .appendSuffix(" hour", " hours")
+      .appendSeparator(" and ")
+      .appendMinutes()
+      .appendSuffix(" minute", " minutes")
+      .appendSeparatorIfFieldsAfter(", ")
+      .appendSeconds()
+      .appendSuffix(" second", " seconds")
+      .toFormatter
+  }
 
   def getDuration: Int = stop match {
       case Some(datetime) => (datetime.getMillis - start.getMillis).toInt
-      case _ => 0
+      case _ => (DateTime.now.getMillis - start.getMillis).toInt
     }
+
+  def getFormattedDuration: String = {
+    val formatter = DurationFormatter.formatter
+    val formatted_interval = formatter.print(new Period(getDuration))
+    formatted_interval
+  }
+
+  override def toString: String = {
+    if(stop.isDefined){
+      s"[$id] $description, started at $start and completed at ${stop.get}, run for $getFormattedDuration"
+    } else {
+      s"[$id] $description, started at $start and running for $getFormattedDuration"
+    }
+  }
 }
 
 
@@ -67,7 +96,8 @@ object TimeEntry {
         case None => None
       },
       (timeEntryData \ "created_with").extractOpt[String],
-      (timeEntryData \ "tags").extract[Option[List[Any]]]
+      (timeEntryData \ "tags").extract[Option[List[Any]]],
+      (timeEntryData \ "description").extract[String]
     )
   }
 
@@ -76,7 +106,7 @@ object TimeEntry {
     if(timeEntriesData.children.toList.length == 0)
       return None
 
-    val timeEntries = for(entry <- timeEntriesData.children.toList) yield parse(entry)
-    Some(timeEntries.toList)
+    val timeEntries: List[TimeEntry] = for(entry <- timeEntriesData.children.toList) yield parse(entry)
+    Some(timeEntries)
   }
 }

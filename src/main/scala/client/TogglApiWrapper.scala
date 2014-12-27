@@ -26,8 +26,20 @@ class TogglApiWrapper(implicit val configuration: ClientConfiguration) {
   }
 
   object TimeEntries {
+
     def getCurrent: Option[TimeEntry] = {
       val svc = url(Endpoints.currentTimeEntry) as_!(apiKey, "api_token")
+      val response: Future[String] = Http(svc OK as.String)
+      val timeEntry = TimeEntry.parse(response())
+      timeEntry
+    }
+
+    def stopCurrent: Option[TimeEntry] = {
+      val currentEntry = getCurrent match {
+        case Some(entry) => entry
+        case None => return None
+      }
+      val svc = url(Endpoints.stopEntry(currentEntry.id)) as_!(apiKey, "api_token")
       val response: Future[String] = Http(svc OK as.String)
       val timeEntry = TimeEntry.parse(response())
       timeEntry
@@ -42,7 +54,14 @@ class TogglApiWrapper(implicit val configuration: ClientConfiguration) {
         case None => None
       }
     }
-  }
+
+    def getLast(number: Int): List[TimeEntry] = {
+      ???
+    }
+
+    def resumeLast: Option[TimeEntry] = {
+      ???
+    }
 
     def createEntry: TimeEntry = {
       ???
@@ -52,5 +71,5 @@ class TogglApiWrapper(implicit val configuration: ClientConfiguration) {
       ???
     }
 
-
+  }
 }
