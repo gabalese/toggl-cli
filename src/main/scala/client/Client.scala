@@ -2,7 +2,9 @@ package client
 
 object Client {
   def main(args: Array[String]) {
+
     implicit val configuration: ClientConfiguration = new ClientConfiguration()
+
     val client = new TogglApiWrapper()
 
     try {
@@ -19,6 +21,13 @@ object Client {
           timeEntry match {
             case Some(entry) => println(entry)
             case None => println("No current entry")
+          }
+
+        case Array("get", "last", x, _*) =>
+          val timeEntries = client.TimeEntries.getLast(x.toInt)
+          timeEntries match {
+            case Some(entries) => entries foreach println
+            case None => println("No latest entries")
           }
 
         case Array("get", "last", _*) =>
@@ -43,8 +52,4 @@ object Client {
     }
 
   }
-}
-
-class JsonPrettyPrinter {
-
 }

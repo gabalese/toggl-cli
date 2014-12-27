@@ -9,27 +9,21 @@ class UnableToConnectException(msg: String) extends Exception(msg: String)
 
 class TogglApiWrapper(implicit val configuration: ClientConfiguration) {
 
-  val apiKey: String = configuration.apiKey
+  val api = new Requester(configuration.apiKey)
 
   object Users {
+
     def getCurrentUserDetails: User = {
-      val svc = url(Endpoints.userData) as_!(apiKey, "api_token")
-      try {
-        val response: Future[String] = Http(svc OK as.String)
+      val response = api.makeRequest(Endpoints.userData)
         val user: User = User.parse(response())
         user
-      } catch {
-        case StatusCode(403) => throw new InvalidCredentialsException("Invalid Toggl credentials")
-        case ex: java.util.concurrent.ExecutionException => throw new UnableToConnectException("Check connection")
-      }
     }
   }
 
   object TimeEntries {
 
     def getCurrent: Option[TimeEntry] = {
-      val svc = url(Endpoints.currentTimeEntry) as_!(apiKey, "api_token")
-      val response: Future[String] = Http(svc OK as.String)
+      val response = api.makeRequest(Endpoints.currentTimeEntry)
       val timeEntry = TimeEntry.parse(response())
       timeEntry
     }
@@ -39,24 +33,29 @@ class TogglApiWrapper(implicit val configuration: ClientConfiguration) {
         case Some(entry) => entry
         case None => return None
       }
-      val svc = url(Endpoints.stopEntry(currentEntry.id)) as_!(apiKey, "api_token")
-      val response: Future[String] = Http(svc OK as.String)
+      val response = api.makeRequest(Endpoints.stopEntry(currentEntry.id))
       val timeEntry = TimeEntry.parse(response())
       timeEntry
     }
 
     def getLast: Option[TimeEntry] = {
-      val svc = url(Endpoints.timeEntries) as_!(apiKey, "api_token")
-      val response: Future[String] = Http(svc OK as.String)
-      val timeEntries = TimeEntry.parseMultiple(response())
-      timeEntries match {
+      getLatestTimeEntries match {
         case Some(x) => Some(x.reverse.head)
         case None => None
       }
     }
 
-    def getLast(number: Int): List[TimeEntry] = {
-      ???
+    def getLast(number: Int): Option[List[TimeEntry]] = {
+      getLatestTimeEntries match {
+        case Some(x) => Some(x.slice(0, number+1))
+        case None => None
+      }
+    }
+
+    private def getLatestTimeEntries: Option[List[TimeEntry]] = {
+      val response = api.makeRequest(Endpoints.timeEntries)
+      val timeEntries = TimeEntry.parseMultiple(response())
+      timeEntries
     }
 
     def resumeLast: Option[TimeEntry] = {
@@ -71,5 +70,14 @@ class TogglApiWrapper(implicit val configuration: ClientConfiguration) {
       ???
     }
 
+  }
+}
+
+class Requester(apiKey: String) {
+
+  def makeRequest(endpoint: String): Future[String] = {
+    val svc = url(endpoint) as_!(apiKey, "api_token")
+    val response: Future[String] = Http(svc OK as.String)
+    response
   }
 }
