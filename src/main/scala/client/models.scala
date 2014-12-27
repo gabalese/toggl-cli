@@ -1,11 +1,30 @@
 package client
 
 import net.liftweb.json
+import net.liftweb.json._
+import net.liftweb.json.JsonDSL._
 import org.joda.time._
-import org.joda.time.format.PeriodFormatterBuilder
+import org.joda.time.format.{DateTimeFormat, PeriodFormatterBuilder}
 
 trait Duration {
   def getDuration: Int
+}
+
+object DurationFormatter {
+  val formatter = new PeriodFormatterBuilder()
+    .appendHours()
+    .appendSuffix(" hour", " hours")
+    .appendSeparator(" and ")
+    .appendMinutes()
+    .appendSuffix(" minute", " minutes")
+    .appendSeparatorIfFieldsAfter(", ")
+    .appendSeconds()
+    .appendSuffix(" second", " seconds")
+    .toFormatter
+}
+
+object DateFormatter {
+  val formatter = DateTimeFormat.forPattern("d MMMM, yyyy")
 }
 
 case class User(fullname: String,
@@ -20,19 +39,6 @@ case class TimeEntry(id: Int,
                      created_with: Option[String],
                      tags: Option[List[Any]],
                      description: String) extends Duration {
-
-  object DurationFormatter {
-    val formatter = new PeriodFormatterBuilder()
-      .appendHours()
-      .appendSuffix(" hour", " hours")
-      .appendSeparator(" and ")
-      .appendMinutes()
-      .appendSuffix(" minute", " minutes")
-      .appendSeparatorIfFieldsAfter(", ")
-      .appendSeconds()
-      .appendSuffix(" second", " seconds")
-      .toFormatter
-  }
 
   def getDuration: Int = stop match {
       case Some(datetime) => (datetime.getMillis - start.getMillis).toInt
@@ -51,6 +57,11 @@ case class TimeEntry(id: Int,
     } else {
       s"[$id] $description, started at $start and running for $getFormattedDuration"
     }
+  }
+
+  def toJson: String = {
+    val jsonMap = ("description" -> description) ~ ("start" -> start.toString(DateFormatter.formatter))
+    json.compact(json.render(jsonMap))
   }
 }
 
@@ -75,7 +86,7 @@ object TimeEntry {
 
   def parse(body: String): Option[TimeEntry] = {
 
-    val timeEntryData: json.JValue = json.parse(body) \ "data"
+    val timeEntryData: JValue = json.parse(body) \ "data"
 
     timeEntryData.children.length match {
       case 0 => None
@@ -83,7 +94,7 @@ object TimeEntry {
     }
   }
 
-  private def parse(timeEntryData: json.JValue): TimeEntry = {
+  private def parse(timeEntryData: JValue): TimeEntry = {
 
     TimeEntry(
       (timeEntryData \ "id").extract[Int],
@@ -102,11 +113,15 @@ object TimeEntry {
   }
 
   def parseMultiple(body: String): Option[List[TimeEntry]] = {
-    val timeEntriesData: json.JValue = json.parse(body)
+    val timeEntriesData: JValue = json.parse(body)
     if(timeEntriesData.children.toList.length == 0)
       return None
 
     val timeEntries: List[TimeEntry] = for(entry <- timeEntriesData.children.toList) yield parse(entry)
     Some(timeEntries)
+  }
+
+  def create(description: String): TimeEntry = {
+    TimeEntry(0, None, None, None, DateTime.now, None, Some("Toggl CLI"), None, description)
   }
 }

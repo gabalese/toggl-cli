@@ -19,4 +19,5 @@ object Endpoints {
   def stopEntry(id: Int): String = {
     s"https://www.toggl.com/api/v8/time_entries/$id/stop"
   }
+  val createEntry: String = "https://www.toggl.com/api/v8/time_entries/start"
 }

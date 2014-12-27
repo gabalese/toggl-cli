@@ -47,7 +47,7 @@ class TogglApiWrapper(implicit val configuration: ClientConfiguration) {
 
     def getLast(number: Int): Option[List[TimeEntry]] = {
       getLatestTimeEntries match {
-        case Some(x) => Some(x.slice(0, number+1))
+        case Some(x) => Some(x.slice(0, number))
         case None => None
       }
     }
