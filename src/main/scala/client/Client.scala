@@ -64,6 +64,8 @@ object Client {
     } catch {
       case ex: IndexOutOfBoundsException => println("Insert command")
       case ex: Exception => throw ex
+    } finally {
+      sys.exit()
     }
 
   }

@@ -1,7 +1,6 @@
 package client
 
 import dispatch._
-import org.joda.time.DateTime
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -17,8 +16,8 @@ class TogglApiWrapper(implicit val configuration: ClientConfiguration) {
 
     def getCurrentUserDetails: User = {
       val response = api.makeRequest(Endpoints.userData)
-        val user: User = User.parse(response())
-        user
+      val user: User = User.parse(response())
+      user
     }
   }
 
@@ -79,28 +78,33 @@ class TogglApiWrapper(implicit val configuration: ClientConfiguration) {
       )
     }
 
-    def get(id: String): TimeEntry = {
-      ???
+    def get(id: String): Option[TimeEntry] = {
+      val response = api.makeRequest(Endpoints.getEntry(id.toInt))
+      val timeEntry = TimeEntry.parse(response())
+      timeEntry
+    }
+  }
+
+  class Requester(apiKey: String) {
+
+    def makeRequest(endpoint: String): Future[String] = {
+      val svc = url(endpoint) as_!(apiKey, "api_token")
+      Http(svc).map {
+        response => response.getStatusCode match {
+          case 200 => response.getResponseBody
+          case _ => throw new MalformedRequestException(s"[${response.getStatusText}], ${response.getResponseBody}")
+        }
+      }
     }
 
-  }
-}
-
-class Requester(apiKey: String) {
-
-  def makeRequest(endpoint: String): Future[String] = {
-    val svc = url(endpoint) as_!(apiKey, "api_token")
-    val response: Future[String] = Http(svc OK as.String)
-    response
-  }
-
-  def postData(endpoint: String, json: String): Future[Either[String, String]] = {
-    val svc = url(endpoint) as_!(apiKey, "api_token")
-    Http(svc << json).map {
-      response => response.getStatusCode match {
-        case 200 => Right(response.getResponseBody)
-        case 201 => Right(response.getResponseBody)
-        case _ => Left(s"[${response.getStatusText}], ${response.getResponseBody}")
+    def postData(endpoint: String, json: String): Future[Either[String, String]] = {
+      val svc = url(endpoint) as_!(apiKey, "api_token")
+      Http(svc << json).map {
+        response => response.getStatusCode match {
+          case 200 => Right(response.getResponseBody)
+          case 201 => Right(response.getResponseBody)
+          case _ => Left(s"[${response.getStatusText}], ${response.getResponseBody}")
+        }
       }
     }
   }
