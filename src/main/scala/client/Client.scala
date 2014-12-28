@@ -26,7 +26,7 @@ object Client {
         case Array("get", "last", x, _*) =>
           val timeEntries = client.TimeEntries.getLast(x.toInt)
           timeEntries match {
-            case Some(entries) => entries foreach println
+            case Some(entries) => entries filterNot(_.isCurrent) foreach println
             case None => println("No latest entries")
           }
 
@@ -42,6 +42,21 @@ object Client {
           timeEntry match {
             case Some(entry) => println(s"Stopped entry $entry")
             case None => println("No entry to stop")
+          }
+
+        case Array("start", "last") =>
+          val lastEntry = client.TimeEntries.getLast.get
+          val confirmation = client.TimeEntries.resumeLast
+          confirmation match {
+            case Some(entry: TimeEntry) => println(entry)
+            case None => throw new InvalidCommandException("No last entry available")
+          }
+
+        case Array("start", description@_*) =>
+          val confirmation = client.TimeEntries.createEntry(description.mkString(" "))
+          confirmation match {
+            case Some(entry: TimeEntry) => println(entry)
+            case None => None
           }
 
         case _ => throw new InvalidCommandException(s"Invalid command: ${args(0)}")

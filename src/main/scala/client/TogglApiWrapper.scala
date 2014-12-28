@@ -1,11 +1,13 @@
 package client
 
 import dispatch._
+import org.joda.time.DateTime
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class InvalidCredentialsException(msg: String) extends Exception(msg: String)
 class UnableToConnectException(msg: String) extends Exception(msg: String)
+class MalformedRequestException(msg: String) extends Exception(msg: String)
 
 class TogglApiWrapper(implicit val configuration: ClientConfiguration) {
 
@@ -58,12 +60,23 @@ class TogglApiWrapper(implicit val configuration: ClientConfiguration) {
       timeEntries
     }
 
-    def resumeLast: Option[TimeEntry] = {
-      ???
+    def createEntry(description: String): Option[TimeEntry] = {
+      val timeEntry: TimeEntry = TimeEntry.create(description)
+      val response: Future[Either[String, String]] = api.postData(Endpoints.createEntry, s""" {"time_entry": ${timeEntry.toJson}} """)
+      response().fold(
+        error => throw new MalformedRequestException(error),
+        result => TimeEntry.parse(result)
+      )
     }
 
-    def createEntry: TimeEntry = {
-      ???
+    def resumeLast: Option[TimeEntry] = {
+      val last = getLast.get
+      val timeEntry = TimeEntry.duplicate(last)
+      val response: Future[Either[String, String]] = api.postData(Endpoints.createEntry, s""" {"time_entry": ${timeEntry.toJson}} """)
+      response().fold(
+        error => throw new MalformedRequestException(error),
+        result => TimeEntry.parse(result)
+      )
     }
 
     def get(id: String): TimeEntry = {
@@ -79,5 +92,16 @@ class Requester(apiKey: String) {
     val svc = url(endpoint) as_!(apiKey, "api_token")
     val response: Future[String] = Http(svc OK as.String)
     response
+  }
+
+  def postData(endpoint: String, json: String): Future[Either[String, String]] = {
+    val svc = url(endpoint) as_!(apiKey, "api_token")
+    Http(svc << json).map {
+      response => response.getStatusCode match {
+        case 200 => Right(response.getResponseBody)
+        case 201 => Right(response.getResponseBody)
+        case _ => Left(s"[${response.getStatusText}], ${response.getResponseBody}")
+      }
+    }
   }
 }

@@ -12,6 +12,7 @@ trait Duration {
 
 object DurationFormatter {
   val formatter = new PeriodFormatterBuilder()
+    .printZeroAlways()
     .appendHours()
     .appendSuffix(" hour", " hours")
     .appendSeparator(" and ")
@@ -51,6 +52,10 @@ case class TimeEntry(id: Int,
     formatted_interval
   }
 
+  def isCurrent: Boolean = {
+    !stop.isDefined
+  }
+
   override def toString: String = {
     if(stop.isDefined){
       s"[$id] $description, started at $start and completed at ${stop.get}, run for $getFormattedDuration"
@@ -60,7 +65,9 @@ case class TimeEntry(id: Int,
   }
 
   def toJson: String = {
-    val jsonMap = ("description" -> description) ~ ("start" -> start.toString(DateFormatter.formatter))
+    val jsonMap = ("description" -> description) ~
+                  ("start" -> start.toString(DateFormatter.formatter)) ~
+                  ("created_with" -> created_with)
     json.compact(json.render(jsonMap))
   }
 }
@@ -123,5 +130,9 @@ object TimeEntry {
 
   def create(description: String): TimeEntry = {
     TimeEntry(0, None, None, None, DateTime.now, None, Some("Toggl CLI"), None, description)
+  }
+
+  def duplicate(entry: TimeEntry): TimeEntry = {
+    TimeEntry(entry.id, entry.pid, entry.wid, entry.billable, DateTime.now(), None, Some("Toggle CLI"), entry.tags, entry.description)
   }
 }
