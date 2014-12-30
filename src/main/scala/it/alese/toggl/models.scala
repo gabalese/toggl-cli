@@ -1,4 +1,4 @@
-package client
+package it.alese.toggl
 
 import net.liftweb.json
 import net.liftweb.json._
@@ -25,7 +25,7 @@ object DurationFormatter {
 }
 
 object DateFormatter {
-  val formatter = DateTimeFormat.forPattern("d MMMM, yyyy")
+  val formatter = DateTimeFormat.fullDateTime()
 }
 
 case class User(fullname: String,
@@ -90,6 +90,7 @@ object User {
 
 object TimeEntry {
   implicit val formats = net.liftweb.json.DefaultFormats
+  implicit val configuration = new ClientConfiguration()
 
   def parse(body: String): Option[TimeEntry] = {
 
@@ -129,10 +130,10 @@ object TimeEntry {
   }
 
   def newFromDescription(description: String): TimeEntry = {
-    TimeEntry(0, None, None, None, DateTime.now, None, Some("Toggl CLI"), None, description)
+    TimeEntry(0, None, None, None, DateTime.now, None, Some(configuration.clientName), None, description)
   }
 
   def newFromExisting(entry: TimeEntry): TimeEntry = {
-    TimeEntry(entry.id, entry.pid, entry.wid, entry.billable, DateTime.now(), None, Some("Toggle CLI"), entry.tags, entry.description)
+    TimeEntry(entry.id, entry.pid, entry.wid, entry.billable, DateTime.now(), None, Some(configuration.clientName), entry.tags, entry.description)
   }
 }

@@ -1,4 +1,4 @@
-package client
+package it.alese.toggl
 
 class ImproperlyConfiguredException(msg: String) extends Exception(msg: String)
 class InvalidCommandException(msg: String) extends Exception(msg: String)
@@ -8,7 +8,6 @@ class ClientConfiguration {
     case Some(key) => key
     case None => throw new ImproperlyConfiguredException("Cannot find any key in sys.env")
   }
-
   val clientName: String = "Toggl CLI Client"
 }
 

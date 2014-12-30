@@ -1,4 +1,4 @@
-package client
+package it.alese.toggl
 
 import dispatch._
 
