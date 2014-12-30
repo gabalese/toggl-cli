@@ -128,11 +128,11 @@ object TimeEntry {
     Some(timeEntries)
   }
 
-  def create(description: String): TimeEntry = {
+  def newFromDescription(description: String): TimeEntry = {
     TimeEntry(0, None, None, None, DateTime.now, None, Some("Toggl CLI"), None, description)
   }
 
-  def duplicate(entry: TimeEntry): TimeEntry = {
+  def newFromExisting(entry: TimeEntry): TimeEntry = {
     TimeEntry(entry.id, entry.pid, entry.wid, entry.billable, DateTime.now(), None, Some("Toggle CLI"), entry.tags, entry.description)
   }
 }

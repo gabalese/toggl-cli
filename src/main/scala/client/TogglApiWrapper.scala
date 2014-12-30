@@ -60,7 +60,7 @@ class TogglApiWrapper(implicit val configuration: ClientConfiguration) {
     }
 
     def createEntry(description: String): Option[TimeEntry] = {
-      val timeEntry: TimeEntry = TimeEntry.create(description)
+      val timeEntry: TimeEntry = TimeEntry.newFromDescription(description)
       val response: Future[Either[String, String]] = api.postData(Endpoints.createEntry, s""" {"time_entry": ${timeEntry.toJson}} """)
       response().fold(
         error => throw new MalformedRequestException(error),
@@ -70,7 +70,7 @@ class TogglApiWrapper(implicit val configuration: ClientConfiguration) {
 
     def resumeLast: Option[TimeEntry] = {
       val last = getLast.get
-      val timeEntry = TimeEntry.duplicate(last)
+      val timeEntry = TimeEntry.newFromExisting(last)
       val response: Future[Either[String, String]] = api.postData(Endpoints.createEntry, s""" {"time_entry": ${timeEntry.toJson}} """)
       response().fold(
         error => throw new MalformedRequestException(error),
