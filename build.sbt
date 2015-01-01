@@ -14,3 +14,5 @@ libraryDependencies ++= Seq(
 )
 
 packAutoSettings
+
+packMain := Map("toggl" -> "it.alese.toggl.Main")

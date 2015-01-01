@@ -1,6 +1,6 @@
 package it.alese.toggl
 
-object Toggl {
+object Main {
   def main(args: Array[String]) {
 
     implicit val configuration: ClientConfiguration = new ClientConfiguration()
