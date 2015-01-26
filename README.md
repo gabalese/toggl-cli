@@ -66,3 +66,9 @@ toggl start last
 ```
 
 Start a new time slot for the last task.
+
+## Package application
+
+```
+sbt pack-archive
+```
