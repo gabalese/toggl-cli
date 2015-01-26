@@ -104,6 +104,7 @@ object TimeEntry {
 
   private def parse(timeEntryData: JValue): TimeEntry = {
 
+    // TODO: Refactor all this crap using .extract[Model] lift builtin capabilities
     TimeEntry(
       (timeEntryData \ "id").extract[Int],
       (timeEntryData \ "pid").extract[Option[Int]],
@@ -119,7 +120,7 @@ object TimeEntry {
       (timeEntryData \ "description").extract[String]
     )
   }
-
+  // TODO: Use lists and common map/flatMap iteration protocols
   def parseMultiple(body: String): Option[List[TimeEntry]] = {
     val timeEntriesData: JValue = json.parse(body)
     if(timeEntriesData.children.toList.length == 0)
@@ -129,6 +130,7 @@ object TimeEntry {
     Some(timeEntries)
   }
 
+  // TODO: Prime candidate for an .apply() constructor
   def newFromDescription(description: String): TimeEntry = {
     TimeEntry(0, None, None, None, DateTime.now, None, Some(configuration.clientName), None, description)
   }
